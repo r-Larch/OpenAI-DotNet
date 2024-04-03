@@ -65,6 +65,30 @@ namespace OpenAI.Tests
             Console.WriteLine(resultWeather);
         }
 
+        [Test]
+        public void Test_03_Tool_works_when_called_concurrently()
+        {
+            Assert.Multiple(async () => {
+                await Task.WhenAll(
+                    Test(1),
+                    Test(2),
+                    Test(3),
+                    Test(4)
+                );
+            });
+
+            async Task Test(int id)
+            {
+                var tool = Tool.FromFunc("myFunc", () => id, "This func allows reading the local variable id");
+
+                // Delay a little bit to simulate calling OpenAi API:
+                await Task.Delay(50);
+
+                var result = tool.InvokeFunction<int>();
+                Assert.AreEqual(id, result);
+            }
+        }
+
         private string Function()
         {
             return "success";
